@@ -36,8 +36,8 @@
 <!--Home Screen-->
 <!--div homeScreen declared below-->
  <div id="homeScreen" class="screen active">
-    <h1> Welcome to ReadYou ! </h1>
-    <p> Let us hear about how your day went today </p>
+    <h1>Welcome to ReadYou !</h1>
+    <p>Let us hear about how your day went today</p>
   </div>
 
 <!-- Chat Box -->
@@ -46,7 +46,7 @@
     <!--place holder is displayed until there is a feeling input to the chatbox-->
     <input type="text" id="homeFeeling" class="chat-input" placeholder="How are you feeling today?">
     <!--button to submit the feeling, leading to reflection screen-->
-    <button id="feelingSend" class="chat-button">➤</button>
+    <button id="feelingSend" class="chat-button">🍂</button>
   </div>
 
 <!-- Reflection Screen -->
@@ -61,6 +61,11 @@
     <!--button to submit reflection, and go back to home below-->
     <button id="submitReflection">Submit Reflection</button>
     <button onclick="resetHome()">Back to Home</button>
+
+    <!--adding photo upload-->
+    <label for="photoUpload" class="upload-btn">Add Photo</label>
+    <input type="file" id="photoUpload" accept="image/*" hidden>
+
   </div>
 
 <!-- Summary Screen -->
@@ -76,7 +81,7 @@
 
 <!-- Suggestions -->
 <!-- div suggestion declared below -->
- <div id = "Suggestions" style = "display: none;">
+ <div id = "Suggestions" class="screen">
     <h2>Recommended for your mood: </h2>
     <h3>Music Suggestions</h3>
     <div id="itunesSuggestion"></div>
@@ -86,6 +91,13 @@
     <div id="coloringSuggestion"></div>
   <button onclick="resetHome()">Back to Home</button>
   </div>
+
+<!--Calendar Screen-->
+<div id="calendarScreen" class="screen">
+  <h2>Your Journal Calendar</h2>
+  <div id="calendar"></div>
+  <button onclick="switchScreen('homeScreen')">Back</button>
+</div>
  
 <script>
 //variables declared below. 
@@ -94,7 +106,9 @@
 //uniqueFeelings will keep track of feelings, while feelingsCount will keep track of numbers of unique feelings.  
 //refence: https://www.w3schools.com/jsref/jsref_map_new.asp
 //refenrece: https://www.w3schools.com/jsref/jsref_map_set.asp
-const journal = [];
+
+//to save journal
+let journal = JSON.parse(localStorage.getItem("journal")) || [];
 const uniqueFeelings = new Set();
 const feelingsCount = new Map();
 let currentFeeling = "";
@@ -111,24 +125,29 @@ function switchScreen(screenId) {
     document.getElementById(screenId).classList.add("active");
 
     // chat box is only displayed on home screen. 
-    const chatBox = document.getElementById("chatbox");
-    if (screenId === "homeScreen"){
-      chatBox.style.display = "block";
-    }else 
-    {
-      chatBox.style.display = "none"; 
-    }
+   const chatBox = document.getElementById("chatbox");
+
+    // show ONLY on home
+    chatBox.style.display = (screenId === "homeScreen") ? "flex" : "none";
 
     //display if full screen if either "entryScreen" or "summaryScreen" or "Suggestions" is selected
     // reference: https://www.w3schools.com/howto/howto_js_fullscreen.asp
-    if (screenId === "entryScreen" || screenId === "summaryScreen" || screenId === "Suggestions") {
-    document.getElementById(screenId).classList.add("fullscreen");
+    if (
+        screenId === "entryScreen" ||
+        screenId === "summaryScreen" ||
+        screenId === "Suggestions"
+    ) {
+        document.getElementById(screenId).classList.add("fullscreen");
     }
-  }
+
+     if (screenId === "calendarScreen") {
+        renderCalendar();
+}
+}
 
 //Add entry
 //referenced from my own code from HW02
-function addEntry() {
+async function addEntry() {
     const reflection = document.getElementById("reflection").value.trim();
 
       // check to see if both emotion and reflection has been filled out. 
@@ -137,16 +156,20 @@ function addEntry() {
         return;
     }
 
+    const photoInput = document.getElementById("photoUpload");
+    const photoFile = photoInput.files[0];
     // user input is stored.
     // reference: https://www.w3schools.com/jsref/jsref_tolocalestring.asp
     const entry = {
         date: new Date().toLocaleString(),
         feeling: currentFeeling,
-        reflection
+        reflection,
+        photo: photoFile ? URL.createObjectURL(photoFile) : null
     };
 
     //updatethe journal entry, as well as unique feelings and feeling count with current feeling. 
     journal.push(entry);
+    localStorage.setItem("journal", JSON.stringify(journal));
     uniqueFeelings.add(currentFeeling);
 
     // keep track of feeling count 
@@ -173,9 +196,12 @@ function updateEntry() {
 
         //new div is filled with entry, feeling, and reflection infos. 
         div.innerHTML = `
-          <strong>Entry ${i + 1} - ${entry.date}</strong><br>
-          <em>Feeling:</em> ${entry.feeling}<br>
-          <em>Reflection:</em> ${entry.reflection}
+          <div class="journal-card">
+            <h4>${entry.date}</h4>
+            <p class="feeling">🍂 ${entry.feeling}</p>
+            <p class="reflection">${entry.reflection}</p>
+            ${entry.photo ? `<img src="${entry.photo}" class="journal-img">` : ""}
+          </div>
         `;
         
         //new div is added to journal
@@ -211,6 +237,24 @@ async function writeReflection() {
   document.getElementById("feelingPrompt").textContent = `You said you feel "${currentFeeling}".`;
   document.getElementById("homeFeeling").value = "";
   switchScreen("entryScreen");
+}
+
+//Calendar rendering function 
+function renderCalendar() {
+  const calendar = document.getElementById("calendar");
+  calendar.innerHTML = "";
+
+  journal.forEach(entry => {
+    const div = document.createElement("div");
+    div.className = "calendar-day";
+
+    div.innerHTML = `
+      <strong>${entry.date.split(",")[0]}</strong><br>
+      ${entry.feeling}
+    `;
+
+    calendar.appendChild(div);
+  });
 }
 
 //API intergration functions below: getItunesMusic, getYouTubeMusic, getColoringSuggestions
@@ -355,26 +399,17 @@ document.getElementById("showSuggestions").addEventListener("click", () => {
 // switch to suggestions screen 
 switchScreen("Suggestions");
 
-// display suggestions area. 
-document.getElementById("Suggestions").style.display = "block";
-
 // call API functions
 getItunesMusic(currentFeeling);
 getYouTubeMusic(currentFeeling);
 getColoringSuggestions(currentFeeling);
   
 });
-</script>
 
-<script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("service-worker.js")
-      .then(reg => console.log("Service Worker Registered"))
-      .catch(err => console.log("Service Worker Failed", err));
-  });
-}
+window.addEventListener("load", () => {
+  updateEntry();
+});
+
 </script>
 
 </body>
