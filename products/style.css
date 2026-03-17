@@ -1,0 +1,283 @@
+/* Project Name: HW04 3RD PARTY INTERGRATION /////////////////////////////////////////////
+/// Course: CS-270-01 /////////////////////////////////////////////////////////////////////
+/// Date: Oct. 14, 2025 ////////////////////////////////////////////////////////////////////
+/// Citation: w3schools.com, JavaScript from Beginner to Professional//////////////////////
+/// by Svekis, Pericival, and Putten, https://www.youtube.com/watch?v=-OcVVgDLI3U//////////
+/// and w3 school java script page (details included in refrence) /////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
+/// This code below is intedned to demonstrate described css application on html code. ////
+/////////////////////////////////////////////////////////////////////////////////////////*/
+
+/* reference: https://www.youtube.com/watch?v=-OcVVgDLI3U */
+/* reference: https://www.youtube.com/watch?v=MYFgtnKMDp4 */
+
+/* Apply Baby Ground font to all them below */
+body, h1, h2, h3, h4, h5, h6, p, input, textarea, button, div {
+  font-family: 'Baby ground', 'sans-serif';
+}
+
+/* Page Layout */
+body {
+    background-color: #fff0f5;
+    background-size: 500px; 
+    background-blend-mode: soft-light;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    color: #555;
+}
+
+/* typography */
+h1, h2, h3 {
+    color: #ff7b9c;
+    text-align: center;
+}
+
+p {
+    font-size: 20px;
+    line-height: 1.5;
+
+}
+
+
+/* Screen Containers */
+.screen {
+    display: none;
+    background: #ffeef4;
+    padding: 30px;
+    border-radius: 30px;
+    box-shadow: 0 4px 20px rgba(255, 182, 193, 0.4);
+    width: 80%;
+    max-width: 500px;
+    margin: 0 auto;
+    transition: all 0.4s ease;
+}
+
+.screen.active{
+    display: block;
+}
+
+
+/* Buttons */
+button {
+    background-color: #ffb6c1;
+    border: none;
+    border-radius: 25px;
+    padding: 10px 18px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin: 6px;
+    color: #fff;
+    font-weight: 500;
+    box-shadow: 0 3px 6px rgba(255, 182, 193, 0.3);
+}
+
+button:hover {
+    background-color: #ff94ac;
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(255, 182, 193, 0.5);
+}
+
+
+/* Chat Box */
+.chat-box {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #fff;
+    border: 2px solid #ffc0cb;
+    border-radius: 30px;
+    padding: 12px 15px;
+    margin-top: 25px;
+    box-shadow: 0 2px 10px rgba(255, 182, 193, 0.3);
+    transition: all 0.3s ease;
+}
+
+.chat-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 12px 15px;
+    font-size: 16px;
+    border-radius: 25px;
+    background-color: #fff5f8;
+    transition: all 0.3s ease;
+}
+
+/* Chat Button */
+.chat-button {
+    background-color: #ffb6c1;
+    border: none;
+    border-radius: 50%;
+    padding: 12px;
+    margin-left: 10px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #fff;
+}
+
+.chat-button:hover {
+    background-color: #ff94ac;
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(255, 182, 193, 0.5);
+}
+
+/* Textarea */
+textarea {
+    width: 100%;
+    height: 120px;
+    border-radius: 20px;
+    border: 2px solid #ffc0cb;
+    padding: 10px;
+    resize: none;
+    transition: 0.3s;
+    background-color: #fff;
+}
+
+textarea:focus {
+    outline: none;
+    border-color: #ff94ac;
+    box-shadow: 0 0 10px rgba(255, 182, 193, 0.5);
+}
+
+
+/* Journal Entry Screen*/
+#entryScreen {
+    padding: 40px;
+    font-size: 1.4em;
+    text-align: center;
+}
+
+#entryScreen h2 {
+    font-size: 2.4em;
+    color: #ff7b9c;
+    margin-bottom: 15px;
+}
+
+#entryScreen p {
+    font-size: 1.6em;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+
+/* Reflection Screen */
+#reflection {
+    height: 200px;
+    width: 400px;
+    font-size: 1.3em;
+    padding: 15px;
+    border-radius: 20px;
+    border: 2px solid #ffc0cb;
+    background-color: #fff;
+    resize: none;
+}
+
+/* Buttons */
+#entryScreen button {
+    font-size: 1.2em;
+    padding: 12px 20px;
+    border-radius: 25px;
+}
+
+
+/* Stats Screen */
+#feelingStats {
+    text-align: left;
+    background: #fff8fa;
+    border-radius: 20px;
+    padding: 10px 15px;
+    margin-top: 10px;
+    box-shadow: 0 2px 6px rgba(255, 182, 193, 0.15);
+}
+
+#feelingStats ul {
+    list-style-type: none;
+    padding-left: 10px;
+    margin: 0;
+}
+
+#feelingStats li {
+    padding: 4px 0;
+}
+
+/* Home Screen*/
+#homeScreen {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    background: none;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+}
+
+#homeScreen h1 {
+    font-size: 2.8em;
+    color: #ff7b9c;
+}
+
+#homeScreen p {
+    font-size: 1.4em;
+    color: #666;
+}
+
+/* Summary Screen*/
+#summaryScreen {
+    padding: 20px;
+    text-align: left;
+    font-size: 1.3em;
+}
+
+#summaryScreen h2 {
+    font-size: 2.4em;
+    color: #ff7b9c;
+}
+
+#summaryScreen h3 {
+    font-size: 2em;
+    color: #ff7b9c;
+}
+
+#journal {
+    font-size: 1.2em;
+}
+
+#feelingStats {
+    font-size: 1.2em;
+}
+
+/*clean up debugging below*/
+/*entry and summry screen clean up*/
+#entryScreen,
+#summaryScreen {
+  background: none;
+  box-shadow: none;
+  border: none;
+  padding: 0;
+  border-radius: 0;
+  margin-top: 30;
+}
+
+/*clean up entry and summary screen */
+#entryScreen .entry,
+#summaryScreen .entry,
+#entryScreen #feelingStats,
+#summaryScreen #feelingStats {
+  background: transparent;
+  box-shadow: none;
+  border: none;
+}
+
+
+
