@@ -1,0 +1,20 @@
+{
+  "name": "ReadYou",
+  "short_name": "ReadYou",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "icons/logo-icon-01.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/logo-icon-02.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

@@ -1,0 +1,381 @@
+<!-- Project Name: HW04 3RD PARTY INTERGRATION /////////////////////////////////////////////////////////////////////////////////////
+/// Course: CS-270-01 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Date: Oct. 14, 2025 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Primary Guidance: w3schools.com, JavaScript from Beginner to Professional////////////////////////////////////////////////////////
+/// by Svekis, Pericival, and Putten ////////////////////////////////////////////////////////////////////////////////////////////////
+/// Reference: https://developers.google.com/apps-script/api/quickstart/js#enable_the_api////////////////////////////////////////////
+/// Reference: https://developer.apple.com/library/archive/documentation/AudioVideo/Conceptual/iTuneSearchAPI/SearchExamples.html////
+/// Reference: Notes from Application development '25 Jan term //////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// This code below is intedned to demonstrate API intergration. ///////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////-->
+
+<!--below is general design of the homepage.-->
+<html lang="en"> <!-- defining languge as english -->
+
+<!--reference: https://www.w3schools.com/tags/tag_button.asp-->
+<!--reference: https://www.w3schools.com/tags/tag_body.asp(ex1)-->
+<!--refernece: https://www.youtube.com/watch?v=-OcVVgDLI3U-->
+
+<head> 
+  <meta charset="UTF-8"> <!-- defining character set -->
+  <meta name="viewport" content="width=device-width, initial-scale=1"> <!--don't shrink if in mobile-->
+  <title>ReadYou</title> <!-- defning title -->
+
+  <!-- External CSS -->
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.cdnfonts.com/css/baby-ground" rel="stylesheet">
+  <!--link it to manifest.json file for ipad and iphone app behavior-->
+  <link rel="manifest" href="manifest.json">
+</head>
+
+
+<!--home screen including chatbox, reflection screen, summary screen below-->
+<body>
+
+<!--Home Screen-->
+<!--div homeScreen declared below-->
+ <div id="homeScreen" class="screen active">
+    <h1> Welcome to ReadYou ! </h1>
+    <p> Let us hear about how your day went today </p>
+  </div>
+
+<!-- Chat Box -->
+<!--div chatbox declared below-->
+  <div id = "chatbox" class="chat-box">
+    <!--place holder is displayed until there is a feeling input to the chatbox-->
+    <input type="text" id="homeFeeling" class="chat-input" placeholder="How are you feeling today?">
+    <!--button to submit the feeling, leading to reflection screen-->
+    <button id="feelingSend" class="chat-button">💌</button>
+  </div>
+
+<!-- Reflection Screen -->
+<!--div entryScreen declared below-->
+  <div id="entryScreen" class="screen">
+    <h2 id="feelingPrompt"></h2>
+    <!--place holder is displayed until there is reflection input from user-->
+    <p>Would you like to share what made you feel this way?</p>
+    <textarea id="reflection" placeholder="Write your reflection here..."></textarea>
+    <button id="showSuggestions">Suggestions </button>
+
+    <!--button to submit reflection, and go back to home below-->
+    <button id="submitReflection">Submit Reflection</button>
+    <button onclick="resetHome()">Back to Home</button>
+  </div>
+
+<!-- Summary Screen -->
+<!--div summary declared below-->
+  <div id="summaryScreen" class="screen">
+    <h2>Your Journal Summary</h2>
+    <div id="journal"></div>
+    <h3>Feeling Statistics</h3>
+    <div id="feelingStats"></div>
+    <!--button to submit reflection, and go back to home below-->
+    <button onclick="resetHome()">Back to Home</button>
+  </div>
+
+<!-- Suggestions -->
+<!-- div suggestion declared below -->
+ <div id = "Suggestions" style = "display: none;">
+    <h2>Recommended for your mood: </h2>
+    <h3>Music Suggestions</h3>
+    <div id="itunesSuggestion"></div>
+    <div id="youtubeSuggestion"> </div>
+
+    <h3>Coloring Sugestions</h3>
+    <div id="coloringSuggestion"></div>
+  <button onclick="resetHome()">Back to Home</button>
+  </div>
+ 
+<script>
+//variables declared below. 
+//current feeling is to be determined by user input. 
+//jorunal array is created
+//uniqueFeelings will keep track of feelings, while feelingsCount will keep track of numbers of unique feelings.  
+//refence: https://www.w3schools.com/jsref/jsref_map_new.asp
+//refenrece: https://www.w3schools.com/jsref/jsref_map_set.asp
+const journal = [];
+const uniqueFeelings = new Set();
+const feelingsCount = new Map();
+let currentFeeling = "";
+
+//function to switch between screens 
+function switchScreen(screenId) {
+    //removes the screen 
+    document.querySelectorAll(".screen").forEach(s => 
+    {
+    s.classList.remove("active", "fullscreen"); 
+    });
+
+    //activate the whole screen 
+    document.getElementById(screenId).classList.add("active");
+
+    // chat box is only displayed on home screen. 
+    const chatBox = document.getElementById("chatbox");
+    if (screenId === "homeScreen"){
+      chatBox.style.display = "block";
+    }else 
+    {
+      chatBox.style.display = "none"; 
+    }
+
+    //display if full screen if either "entryScreen" or "summaryScreen" or "Suggestions" is selected
+    // reference: https://www.w3schools.com/howto/howto_js_fullscreen.asp
+    if (screenId === "entryScreen" || screenId === "summaryScreen" || screenId === "Suggestions") {
+    document.getElementById(screenId).classList.add("fullscreen");
+    }
+  }
+
+//Add entry
+//referenced from my own code from HW02
+function addEntry() {
+    const reflection = document.getElementById("reflection").value.trim();
+
+      // check to see if both emotion and reflection has been filled out. 
+    if (!reflection) {
+        alert("Please enter both your feeling and reflection.");
+        return;
+    }
+
+    // user input is stored.
+    // reference: https://www.w3schools.com/jsref/jsref_tolocalestring.asp
+    const entry = {
+        date: new Date().toLocaleString(),
+        feeling: currentFeeling,
+        reflection
+    };
+
+    //updatethe journal entry, as well as unique feelings and feeling count with current feeling. 
+    journal.push(entry);
+    uniqueFeelings.add(currentFeeling);
+
+    // keep track of feeling count 
+    feelingsCount.set(currentFeeling, (feelingsCount.get(currentFeeling) || 0 ) + 1);
+    updateEntry();
+
+    //clear reflection input then switch to summary screen 
+    document.getElementById("reflection").value = "";
+    switchScreen("summaryScreen");
+}
+
+//update summary
+//referenced from my own code from HW02
+function updateEntry() {
+    //clear journal 
+    const journalDiv = document.getElementById("journal");
+    journalDiv.innerHTML = "";
+
+    //display each entry seperately in journal
+    journal.forEach((entry, i) => {
+        //creates new div, as well as new class entry for styling purposes
+        const div = document.createElement("div");
+        div.className = "entry";
+
+        //new div is filled with entry, feeling, and reflection infos. 
+        div.innerHTML = `
+          <strong>Entry ${i + 1} - ${entry.date}</strong><br>
+          <em>Feeling:</em> ${entry.feeling}<br>
+          <em>Reflection:</em> ${entry.reflection}
+        `;
+        
+        //new div is added to journal
+        journalDiv.appendChild(div);
+    });
+
+      //added section for feeling stats
+      //refence: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/from
+      const statsDiv = document.getElementById("feelingStats");
+      
+      //created HTML string->arrayto store unique feelings
+      let statsHTML = `<p><strong>Unique Feelings:</strong> ${Array.from(uniqueFeelings).join(", ")}</p>`;
+
+      //counting feelings that were input out of order
+      statsHTML += `<ul>`;
+      feelingsCount.forEach((count, feeling) => {
+        statsHTML += `<li>${feeling}: ${count} time(s)</li>`;
+      });
+
+      //updates to the feelingstat page
+      statsHTML += `</ul>`;
+      statsDiv.innerHTML = statsHTML;
+}
+
+async function writeReflection() {
+  const feelingInput = document.getElementById("homeFeeling").value.trim();
+  if (!feelingInput) {
+    alert("Please enter how you are feeling!");
+    return;
+  }
+
+  currentFeeling = feelingInput;
+  document.getElementById("feelingPrompt").textContent = `You said you feel "${currentFeeling}".`;
+  document.getElementById("homeFeeling").value = "";
+  switchScreen("entryScreen");
+}
+
+//API intergration functions below: getItunesMusic, getYouTubeMusic, getColoringSuggestions
+//reference: https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/samples/functions-actions-client-side-javascript#functionsandactionsjs
+
+// function to get api for itunes music suggestions 
+async function getItunesMusic(feeling) {
+  const div = document.getElementById("itunesSuggestion");
+  div.innerHTML = `<p>Loading iTunes results for "${feeling}"...</p>`; // message while loading 
+
+  // fetching data from iTunes API below. 
+  try {
+    const response = await fetch(
+      `https://itunes.apple.com/search?term=${encodeURIComponent(feeling)}&entity=song&limit=3`
+    );
+    const data = await response.json();
+
+    // if results aren't found, appropriate message is displayed. 
+    if (!data.results.length) {
+      div.innerHTML = `<p>No iTunes songs found for "${feeling}".</p>`;
+      return;
+    }
+
+    // display results 
+    div.innerHTML = `<h4>iTunes Music Suggestions</h4>`;
+    data.results.forEach(song => {
+      // trackname, artistname, and preview url are displayed below. 
+      div.innerHTML += `
+        <p>
+          <strong>${song.trackName}</strong> — ${song.artistName}<br>
+          <audio controls src="${song.previewUrl}"></audio>
+        </p>`;
+    });
+  } 
+  // debug: error message displayed if there is an error. 
+  catch (error) {
+  div.innerHTML = `<p>Error fetching iTunes data: ${error.message}</p>`;
+  }
+}
+
+// function to get api for youtube music suggestions 
+// reference: https://developers.google.com/youtube/v3/getting-started
+async function getYouTubeMusic(feeling) {
+  const div = document.getElementById("youtubeSuggestion");
+  div.innerHTML = `<p>Searching YouTube for "${feeling}"...</p>`;
+  const apiKey = "AIzaSyD0kmnQluOyT4sywEtSjrmNMPxW3jED4ts"; // api key 
+  const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=3&q=${encodeURIComponent(feeling + " music")}&key=${apiKey}`;
+
+  // fetching data from youtube api below. 
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+
+    // display the message for results 
+    div.innerHTML = `<h4>YouTube Music</h4>`;
+    data.items.forEach(item => {
+      // video id, title and thubnail are displayed. 
+      const videoId = item.id.videoId;
+      const title = item.snippet.title;
+      const thumbnail = item.snippet.thumbnails.default.url;
+      div.innerHTML += `
+        <div style="margin-bottom: 10px;">
+          <img src="${thumbnail}" alt="${title}" style="border-radius: 8px;"><br>
+          <a href="https://www.youtube.com/watch?v=${videoId}" target="_blank">${title}</a>
+        </div>`;
+    });
+  } 
+  // debug: error message displayed if there is an error. 
+  catch (error) {
+    div.innerHTML = `<p>Error fetching YouTube data: ${error.message}</p>`;
+  }
+}
+
+// function to get api for coloring suggestions 
+async function getColoringSuggestions(feeling) {
+  const div = document.getElementById("coloringSuggestion");
+  div.innerHTML = `<p>Searching for "${feeling}" coloring pages...</p>`;
+
+  const apiKey = "AIzaSyCo1Q9saoMSXkk5zIupgX-aabOtH5PAXyA"; // api key
+  const cx = "e2ab9da89ef5e4908"; // Custom Search Engine ID
+  const query = encodeURIComponent(feeling + " coloring page"); // serach query 
+
+  // fetching data from google custom serach api below. 
+  try {
+    const response = await fetch(
+      `https://www.googleapis.com/customsearch/v1?q=${query}&cx=${cx}&searchType=image&num=3&key=${apiKey}`
+    );
+    const data = await response.json();
+
+    // if results aren't found, appropriate message is displayed. 
+    if (!data.items || data.items.length === 0) {
+      div.innerHTML = `<p>No coloring pages found for "${feeling}".</p>`;
+      return;
+    }
+
+    // Display images with download links
+    div.innerHTML = `<h4> Coloring Suggestions (powered by google)</h4>`;
+    data.items.forEach((item, i) => {
+      div.innerHTML += `
+        <a href="${item.link}" download="coloring_page_${i + 1}.png">
+          <img src="${item.link}" alt="${item.title}" style="width:200px; margin:10px; border-radius:8px;">
+        </a>
+      `;
+    });
+  } 
+  // debug: error message displayed if there is an error. 
+  catch (error) {
+  div.innerHTML = `<p>Error fetching coloring pages: ${error.message}</p>`;
+  }
+}
+
+// function to clear previous suggestions 
+function clearSuggestions(){
+  document.getElementById("itunesSuggestion").innerHTML = "";
+  document.getElementById("youtubeSuggestion").innerHTML = "";
+  document.getElementById("coloringSuggestion").innerHTML = "";
+}
+
+//function to return home with cleared suggestions, and hidden suggestions page elements. 
+function resetHome() {
+  clearSuggestions(); // clear previous suggestions 
+  switchScreen("homeScreen"); // switch to home screen 
+  document.getElementById("Suggestions").style.display = "none"; // hide suggesitons page elements 
+}
+
+// entring key event
+    document.getElementById("homeFeeling").addEventListener("keypress", e => {
+      if (e.key === "Enter") writeReflection();
+    });
+
+// events handling
+    document.getElementById("feelingSend").addEventListener("click", writeReflection);
+    document.getElementById("submitReflection").addEventListener("click", addEntry);
+
+// Suggestions button handling 
+document.getElementById("showSuggestions").addEventListener("click", () => {
+  if (!currentFeeling) {
+    alert("Please enter how you are feeling first!");
+    return;
+  }
+
+// switch to suggestions screen 
+switchScreen("Suggestions");
+
+// display suggestions area. 
+document.getElementById("Suggestions").style.display = "block";
+
+// call API functions
+getItunesMusic(currentFeeling);
+getYouTubeMusic(currentFeeling);
+getColoringSuggestions(currentFeeling);
+  
+});
+</script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("service-worker.js")
+      .then(reg => console.log("Service Worker Registered"))
+      .catch(err => console.log("Service Worker Failed", err));
+  });
+}
+</script>
+
+</body>
+</html>
