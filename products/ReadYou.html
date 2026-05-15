@@ -1,6 +1,6 @@
-<!-- Project Name: HW04 3RD PARTY INTERGRATION /////////////////////////////////////////////////////////////////////////////////////
-/// Course: CS-270-01 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Date: Oct. 14, 2025 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+<!-- Project Name: Read you /////////////////////////////////////////////////////////////////////////////////////
+/// Course: Applied Digital Humanities //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Date Created: Oct. 14, 2025 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Primary Guidance: w3schools.com, JavaScript from Beginner to Professional////////////////////////////////////////////////////////
 /// by Svekis, Pericival, and Putten ////////////////////////////////////////////////////////////////////////////////////////////////
 /// Reference: https://developers.google.com/apps-script/api/quickstart/js#enable_the_api////////////////////////////////////////////
@@ -8,7 +8,8 @@
 /// Reference: Notes from Application development '25 Jan term //////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This code below is intedned to demonstrate API intergration. ///////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////-->
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////Last date accessed: May 15, 2026/////////////////////////////////////////////////////////////////////////////////////////////-->
 
 <!--below is general design of the homepage.-->
 <html lang="en"> <!-- defining languge as english -->
@@ -27,18 +28,75 @@
   <link href="https://fonts.cdnfonts.com/css/baby-ground" rel="stylesheet">
   <!--link it to manifest.json file for ipad and iphone app behavior-->
   <link rel="manifest" href="manifest.json">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sentiment@5.0.2/build/sentiment.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 
 <!--home screen including chatbox, reflection screen, summary screen below-->
 <body>
+<!-- Login / Preference Survey Screen -->
+<div id="loginScreen" class="screen active">
+  <h1>Welcome to ReadYou</h1>
+  <p>Please log in and tell us a little about your preferences.</p>
+
+  <input type="text" id="loginName" placeholder="Enter your name">
+  <input type="email" id="loginEmail" placeholder="Enter your email">
+
+  <h3>Quick Preference Survey</h3>
+
+  <label for="musicPreference">What kind of music helps you most?</label>
+  <select id="musicPreference">
+    <option value="">Select...</option>
+    <option value="calming music">Calming music</option>
+    <option value="classical music">Classical music</option>
+    <option value="lofi music">Lo-fi music</option>
+    <option value="worship music">Worship music</option>
+    <option value="pop music">Pop music</option>
+  </select>
+
+  <label for="activityPreference">What activity usually helps you feel better?</label>
+  <select id="activityPreference">
+    <option value="">Select...</option>
+    <option value="coloring">Coloring</option>
+    <option value="walking">Walking</option>
+    <option value="journaling">Journaling</option>
+    <option value="breathing exercise">Breathing exercise</option>
+    <option value="creative activity">Creative activity</option>
+  </select>
+
+  <label for="reflectionPreference">What kind of reflection support do you prefer?</label>
+  <select id="reflectionPreference">
+    <option value="">Select...</option>
+    <option value="gentle encouragement">Gentle encouragement</option>
+    <option value="practical suggestions">Practical suggestions</option>
+    <option value="deep reflection questions">Deep reflection questions</option>
+  </select>
+
+  <button id="loginButton">Start Journaling</button>
+</div>
 
 <!--Home Screen-->
 <!--div homeScreen declared below-->
- <div id="homeScreen" class="screen active">
-    <h1>Welcome to ReadYou !</h1>
-    <p>Let us hear about how your day went today</p>
+<div id="homeScreen" class="screen">
+
+  <div class="top-right-menu">
+    <label for="homeMenu">Menu</label>
+    <select id="homeMenu">
+      <option value="">Select...</option>
+      <option value="write">Write New Journal</option>
+      <option value="calendar">Search Journal by Date</option>
+      <option value="summary">View Journal Summary</option>
+      <option value="pdf">Download Journal PDF</option>
+      <option value="logout">Log Out</option>
+    </select>
   </div>
+
+  <h1>Welcome to ReadYou !</h1>
+  <p>Let us hear about how your day went today</p>
+
+</div>
 
 <!-- Chat Box -->
 <!--div chatbox declared below-->
@@ -55,6 +113,7 @@
     <h2 id="feelingPrompt"></h2>
     <!--place holder is displayed until there is reflection input from user-->
     <p>Would you like to share what made you feel this way?</p>
+    <p id="insight"></p>
     <textarea id="reflection" placeholder="Write your reflection here..."></textarea>
     <button id="showSuggestions">Suggestions </button>
 
@@ -72,11 +131,35 @@
 <!--div summary declared below-->
   <div id="summaryScreen" class="screen">
     <h2>Your Journal Summary</h2>
-    <div id="journal"></div>
-    <h3>Feeling Statistics</h3>
-    <div id="feelingStats"></div>
-    <!--button to submit reflection, and go back to home below-->
-    <button onclick="resetHome()">Back to Home</button>
+
+  <div id="journal"></div>
+
+  <h3>Insight</h3>
+  <p id="insightText"></p>
+
+  <h3>Suggestions for You</h3>
+  <ul id="suggestionsList"></ul>
+
+  <h3>Feeling Statistics</h3>
+  <div id="feelingStats"></div>
+
+  <h3>Emotion Trend</h3>
+  <canvas id="emotionChart" width="400" height="200"></canvas>
+
+  <button onclick="resetHome()">Back to Home</button>
+  <label for="pdfFilter">Download journal by:</label>
+
+<select id="pdfFilter">
+  <option value="all">All entries</option>
+  <option value="monthly">This month</option>
+  <option value="annually">This year</option>
+  <option value="positive">Positive / Happy entries</option>
+  <option value="negative">Negative / Sad entries</option>
+  <option value="neutral">Neutral entries</option>
+</select>
+
+<button id="downloadPDF">Download PDF</button>
+
   </div>
 
 <!-- Suggestions -->
@@ -90,14 +173,26 @@
     <h3>Coloring Sugestions</h3>
     <div id="coloringSuggestion"></div>
   <button onclick="resetHome()">Back to Home</button>
+  <button onclick="switchScreen('entryScreen')">Back to Reflection</button>
   </div>
 
 <!--Calendar Screen-->
 <div id="calendarScreen" class="screen">
-  <h2>Your Journal Calendar</h2>
+  <h2>Search Your Journal</h2>
+
+  <label for="journalDateSearch">Choose a date:</label>
+  <input type="date" id="journalDateSearch">
+
+  <button id="searchJournalByDate">Search</button>
+
+  <div id="calendarSearchResults"></div>
+
+  <h3>Your Journal Calendar</h3>
   <div id="calendar"></div>
-  <button onclick="switchScreen('homeScreen')">Back</button>
+
+  <button onclick="resetHome()">Back to Home</button>
 </div>
+
  
 <script>
 //variables declared below. 
@@ -112,6 +207,11 @@ let journal = JSON.parse(localStorage.getItem("journal")) || [];
 const uniqueFeelings = new Set();
 const feelingsCount = new Map();
 let currentFeeling = "";
+let currentUser = JSON.parse(localStorage.getItem("currentUser")) || null;
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("chatbox").style.display = "none";
+});
 
 //function to switch between screens 
 function switchScreen(screenId) {
@@ -145,41 +245,227 @@ function switchScreen(screenId) {
 }
 }
 
+//suggestion display
+function displaySuggestions(suggestions) {
+  const container = document.getElementById("suggestionsList");
+  container.innerHTML = "";
+
+  suggestions.forEach(item => {
+    const li = document.createElement("li");
+    li.textContent = item;
+    container.appendChild(li);
+  });
+}
+
+let emotionChart; // global so we can update it
+
+function renderEmotionChart() {
+  const canvas = document.getElementById("emotionChart");
+  if (!canvas || typeof Chart === "undefined") return;
+
+  const ctx = canvas.getContext("2d");
+
+  const countsByDate = {};
+
+  journal.forEach(entry => {
+    const date = new Date(entry.date).toLocaleDateString();
+
+    if (!countsByDate[date]) {
+      countsByDate[date] = 0;
+    }
+
+    if (entry.sentimentScore !== undefined) {
+      countsByDate[date] += entry.sentimentScore;
+    }
+  });
+
+  const labels = Object.keys(countsByDate).sort((a, b) => new Date(a) - new Date(b));
+  const data = labels.map(date => countsByDate[date]);
+
+  if (emotionChart) {
+    emotionChart.destroy();
+  }
+
+  emotionChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [{
+        label: "Emotional Trend (Sentiment Score)",
+        data: data,
+        fill: false,
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: true
+        }
+      },
+      scales: {
+        y: {
+          title: {
+            display: true,
+            text: "Sentiment Score"
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: "Date"
+          }
+        }
+      }
+    }
+  });
+}
+
+function loginUser() {
+  console.log("Start Journaling button clicked");
+
+  const name = document.getElementById("loginName").value.trim();
+  const email = document.getElementById("loginEmail").value.trim();
+
+  const musicPreference = document.getElementById("musicPreference").value;
+  const activityPreference = document.getElementById("activityPreference").value;
+  const reflectionPreference = document.getElementById("reflectionPreference").value;
+
+  if (!name || !email) {
+    alert("Please enter your name and email.");
+    return;
+  }
+
+  if (!musicPreference || !activityPreference || !reflectionPreference) {
+    alert("Please complete the quick preference survey.");
+    return;
+  }
+
+  currentUser = {
+    name: name,
+    email: email,
+    preferences: {
+      music: musicPreference,
+      activity: activityPreference,
+      reflection: reflectionPreference
+    }
+  };
+
+  localStorage.setItem("currentUser", JSON.stringify(currentUser));
+
+  document.querySelector("#homeScreen h1").textContent =
+    `Welcome to ReadYou, ${currentUser.name}!`;
+
+  switchScreen("homeScreen");
+}
+
+function searchJournalByDate() {
+  const selectedDate = document.getElementById("journalDateSearch").value;
+  const resultsDiv = document.getElementById("calendarSearchResults");
+
+  resultsDiv.innerHTML = "";
+
+  if (!selectedDate) {
+    alert("Please choose a date first.");
+    return;
+  }
+
+  const matchingEntries = journal.filter(entry => {
+    const entryDate = new Date(entry.date).toISOString().split("T")[0];
+    return entryDate === selectedDate;
+  });
+
+  if (matchingEntries.length === 0) {
+    resultsDiv.innerHTML = `<p>No journal entries found for this date.</p>`;
+    return;
+  }
+
+  resultsDiv.innerHTML = `<h3>Entries from ${selectedDate}</h3>`;
+
+  matchingEntries.forEach(entry => {
+    const div = document.createElement("div");
+    div.className = "journal-card";
+
+    div.innerHTML = `
+      <h4>${entry.date}</h4>
+      <p><strong>Feeling:</strong> ${entry.feeling}</p>
+      <p><strong>Sentiment:</strong> ${entry.sentiment}</p>
+      <p>${entry.reflection}</p>
+      ${entry.insight ? `<p><strong>Insight:</strong> ${entry.insight}</p>` : ""}
+      ${entry.photo ? `<img src="${entry.photo}" class="journal-img">` : ""}
+    `;
+
+    resultsDiv.appendChild(div);
+  });
+}
+
 //Add entry
 //referenced from my own code from HW02
 async function addEntry() {
+    console.log("submit reflection button clicked");
+
     const reflection = document.getElementById("reflection").value.trim();
 
-      // check to see if both emotion and reflection has been filled out. 
-    if (!reflection) {
+    if (!currentFeeling || !reflection) {
         alert("Please enter both your feeling and reflection.");
         return;
     }
 
+    // Get uploaded photo, if there is one
     const photoInput = document.getElementById("photoUpload");
     const photoFile = photoInput.files[0];
-    // user input is stored.
-    // reference: https://www.w3schools.com/jsref/jsref_tolocalestring.asp
+
+    // Basic NLP / sentiment analysis
+    const sentimentLabel = analyzeSentiment(reflection);
+
+    let score = 0;
+    if (sentimentLabel === "Positive") score = 3;
+    else if (sentimentLabel === "Negative") score = -3;
+
+    let mood = "neutral";
+    if (score > 0) mood = "positive";
+    else if (score < 0) mood = "negative";
+
+    const suggestions = generateSuggestions(mood, currentFeeling);
+    const reflectionInsight = generateInsight(mood, currentFeeling);
+
     const entry = {
         date: new Date().toLocaleString(),
         feeling: currentFeeling,
         reflection,
-        photo: photoFile ? URL.createObjectURL(photoFile) : null
+        photo: photoFile ? URL.createObjectURL(photoFile) : null,
+        sentiment: mood,
+        sentimentScore: score,
+        suggestions,
+        insight: reflectionInsight
     };
 
-    //updatethe journal entry, as well as unique feelings and feeling count with current feeling. 
     journal.push(entry);
     localStorage.setItem("journal", JSON.stringify(journal));
+
     uniqueFeelings.add(currentFeeling);
+    feelingsCount.set(
+        currentFeeling,
+        (feelingsCount.get(currentFeeling) || 0) + 1
+    );
 
-    // keep track of feeling count 
-    feelingsCount.set(currentFeeling, (feelingsCount.get(currentFeeling) || 0 ) + 1);
     updateEntry();
+    displaySuggestions(entry.suggestions);
+    document.getElementById("insightText").textContent = entry.insight;
 
-    //clear reflection input then switch to summary screen 
     document.getElementById("reflection").value = "";
+    photoInput.value = "";
+
     switchScreen("summaryScreen");
+
+    try {
+        renderEmotionChart();
+    } catch (error) {
+        console.log("Chart error:", error);
+    }
 }
+  
 
 //update summary
 //referenced from my own code from HW02
@@ -201,11 +487,13 @@ function updateEntry() {
             <p class="feeling">🍂 ${entry.feeling}</p>
             <p class="reflection">${entry.reflection}</p>
             ${entry.photo ? `<img src="${entry.photo}" class="journal-img">` : ""}
+            <p class="sentiment">Sentiment: ${entry.sentiment}</p>
           </div>
         `;
         
         //new div is added to journal
         journalDiv.appendChild(div);
+
     });
 
       //added section for feeling stats
@@ -244,19 +532,24 @@ function renderCalendar() {
   const calendar = document.getElementById("calendar");
   calendar.innerHTML = "";
 
+  if (journal.length === 0) {
+    calendar.innerHTML = "<p>No journal entries yet.</p>";
+    return;
+  }
+
   journal.forEach(entry => {
     const div = document.createElement("div");
     div.className = "calendar-day";
 
     div.innerHTML = `
-      <strong>${entry.date.split(",")[0]}</strong><br>
-      ${entry.feeling}
+      <strong>${new Date(entry.date).toLocaleDateString()}</strong><br>
+      Feeling: ${entry.feeling}<br>
+      Sentiment: ${entry.sentiment || "not analyzed"}
     `;
 
     calendar.appendChild(div);
   });
 }
-
 //API intergration functions below: getItunesMusic, getYouTubeMusic, getColoringSuggestions
 //reference: https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/samples/functions-actions-client-side-javascript#functionsandactionsjs
 
@@ -377,38 +670,333 @@ function clearSuggestions(){
 function resetHome() {
   clearSuggestions(); // clear previous suggestions 
   switchScreen("homeScreen"); // switch to home screen 
-  document.getElementById("Suggestions").style.display = "none"; // hide suggesitons page elements 
 }
 
-// entring key event
-    document.getElementById("homeFeeling").addEventListener("keypress", e => {
-      if (e.key === "Enter") writeReflection();
-    });
+//function to analyze feeling 
+function analyzeSentiment(text) {
+  const positiveWords = ["happy", "good", "great", "excited", "love", "relaxed"];
+  const negativeWords = ["sad", "stressed", "angry", "tired", "anxious", "bad"];
 
-// events handling
-    document.getElementById("feelingSend").addEventListener("click", writeReflection);
-    document.getElementById("submitReflection").addEventListener("click", addEntry);
+  let score = 0;
 
-// Suggestions button handling 
-document.getElementById("showSuggestions").addEventListener("click", () => {
-  if (!currentFeeling) {
-    alert("Please enter how you are feeling first!");
+  text.toLowerCase().split(" ").forEach(word => {
+    if (positiveWords.includes(word)) score++;
+    if (negativeWords.includes(word)) score--;
+  });
+
+  if (score > 0) return "Positive";
+  if (score < 0) return "Negative";
+  return "Neutral";
+}
+
+function rebuildStats() {
+  uniqueFeelings.clear();
+  feelingsCount.clear();
+
+  journal.forEach(entry => {
+    uniqueFeelings.add(entry.feeling);
+    feelingsCount.set(
+      entry.feeling,
+      (feelingsCount.get(entry.feeling) || 0) + 1
+    );
+  });
+}
+
+function generateReflectionInsight(reflection) {
+  const sentiment = analyzeSentiment(reflection);
+
+  if (sentiment.includes("Positive")) {
+    return "It seems like you had a positive experience. Consider what contributed to this feeling.";
+  } 
+  else if (sentiment.includes("Negative")) {
+    return "It seems like you had a difficult moment. Reflecting on this may help you understand your emotions better.";
+  } 
+  else {
+    return "Your reflection appears balanced. You might explore what could enhance your day.";
+  }
+}
+
+async function downloadPDF() {
+  const filter = document.getElementById("pdfFilter").value;
+  const filteredJournal = filterJournalEntries(filter);
+
+  if (filteredJournal.length === 0) {
+    alert("No journal entries match this filter.");
     return;
   }
 
-// switch to suggestions screen 
-switchScreen("Suggestions");
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
 
-// call API functions
-getItunesMusic(currentFeeling);
-getYouTubeMusic(currentFeeling);
-getColoringSuggestions(currentFeeling);
-  
-});
+  let y = 10;
+
+  doc.setFontSize(16);
+  doc.text("ReadYou Journal Entries", 10, y);
+  y += 8;
+
+  doc.setFontSize(11);
+  doc.text(`Filter: ${getFilterLabel(filter)}`, 10, y);
+  y += 10;
+
+  filteredJournal.forEach((entry, index) => {
+    // Start a new page if there is not enough room
+    if (y > 255) {
+      doc.addPage();
+      y = 10;
+    }
+
+    doc.setFontSize(13);
+    doc.text(`Entry ${index + 1}`, 10, y);
+    y += 7;
+
+    doc.setFontSize(11);
+    doc.text(`Date: ${entry.date}`, 10, y);
+    y += 6;
+
+    doc.text(`Feeling: ${entry.feeling}`, 10, y);
+    y += 6;
+
+    if (entry.sentiment) {
+      doc.text(`Sentiment: ${entry.sentiment}`, 10, y);
+      y += 6;
+    }
+
+    if (entry.sentimentScore !== undefined) {
+      doc.text(`Sentiment Score: ${entry.sentimentScore}`, 10, y);
+      y += 6;
+    }
+
+    doc.text("Reflection:", 10, y);
+    y += 6;
+
+    const splitReflection = doc.splitTextToSize(entry.reflection, 180);
+    doc.text(splitReflection, 10, y);
+    y += splitReflection.length * 6;
+
+    if (entry.insight) {
+      y += 3;
+      doc.text("Insight:", 10, y);
+      y += 6;
+
+      const splitInsight = doc.splitTextToSize(entry.insight, 180);
+      doc.text(splitInsight, 10, y);
+      y += splitInsight.length * 6;
+    }
+
+    y += 10;
+  });
+
+  doc.save(`ReadYou_Journal_${filter}.pdf`);
+}
+
+function filterJournalEntries(filter) {
+  const now = new Date();
+
+  return journal.filter(entry => {
+    const entryDate = new Date(entry.date);
+
+    if (filter === "all") {
+      return true;
+    }
+
+    if (filter === "monthly") {
+      return (
+        entryDate.getMonth() === now.getMonth() &&
+        entryDate.getFullYear() === now.getFullYear()
+      );
+    }
+
+    if (filter === "annually") {
+      return entryDate.getFullYear() === now.getFullYear();
+    }
+
+    if (filter === "positive") {
+      return entry.sentiment === "positive";
+    }
+
+    if (filter === "negative") {
+      return entry.sentiment === "negative";
+    }
+
+    if (filter === "neutral") {
+      return entry.sentiment === "neutral";
+    }
+
+    return true;
+  });
+}
+
+function getFilterLabel(filter) {
+  if (filter === "all") return "All entries";
+  if (filter === "monthly") return "This month";
+  if (filter === "annually") return "This year";
+  if (filter === "positive") return "Positive / Happy entries";
+  if (filter === "negative") return "Negative / Sad entries";
+  if (filter === "neutral") return "Neutral entries";
+
+  return "All entries";
+}
+
+function generateSuggestions(mood, feeling) {
+  const activity = currentUser?.preferences?.activity || "journaling";
+  const reflectionStyle = currentUser?.preferences?.reflection || "gentle encouragement";
+
+  if (mood === "negative") {
+    return [
+      `Try your preferred calming activity: ${activity} 🌿`,
+      "Take a 5-minute breathing break 🧘",
+      "Write freely without judging your thoughts ✍️",
+      reflectionStyle === "deep reflection questions"
+        ? "Ask yourself: What do I need most right now?"
+        : "Be gentle with yourself today."
+    ];
+  }
+
+  if (mood === "positive") {
+    return [
+      `Use your positive energy for ${activity} ⭐`,
+      "Write down what made today meaningful 😊",
+      "Share your good moment with someone you trust",
+      reflectionStyle === "practical suggestions"
+        ? "Set one small goal for tomorrow."
+        : "Notice what helped create this positive feeling."
+    ];
+  }
+
+  return [
+    `Try a light version of your preferred activity: ${activity}`,
+    "Reflect a bit deeper on your day 🤔",
+    "Take a mindful break ☕",
+    reflectionStyle === "deep reflection questions"
+      ? "Ask yourself: What emotion is underneath this feeling?"
+      : "Give yourself space to process your thoughts."
+  ];
+}
+
+function generateInsight(mood, feeling) {
+  if (mood === "negative") {
+    return `It seems like you're feeling ${feeling}. Your reflection suggests some emotional weight — taking small restorative actions might help rebalance your mood.`;
+  }
+
+  if (mood === "positive") {
+    return `You're feeling ${feeling}, and your reflection shows positive momentum. This is a great time to reinforce what’s working well.`;
+  }
+
+  return `Your reflection seems balanced. You might benefit from exploring your thoughts a bit more deeply.`;
+}
 
 window.addEventListener("load", () => {
+  rebuildStats();
   updateEntry();
+
+  const loginButton = document.getElementById("loginButton");
+  if (loginButton) {
+    loginButton.addEventListener("click", loginUser);
+  }
+
+  const homeFeeling = document.getElementById("homeFeeling");
+  if (homeFeeling) {
+    homeFeeling.addEventListener("keypress", e => {
+      if (e.key === "Enter") writeReflection();
+    });
+  }
+
+  const feelingSend = document.getElementById("feelingSend");
+  if (feelingSend) {
+    feelingSend.addEventListener("click", writeReflection);
+  }
+
+  const submitReflection = document.getElementById("submitReflection");
+  if (submitReflection) {
+    submitReflection.addEventListener("click", addEntry);
+  }
+
+  const downloadButton = document.getElementById("downloadPDF");
+  if (downloadButton) {
+    downloadButton.addEventListener("click", downloadPDF);
+  }
+
+  const searchButton = document.getElementById("searchJournalByDate");
+  if (searchButton) {
+    searchButton.addEventListener("click", searchJournalByDate);
+  }
+
+  const homeMenu = document.getElementById("homeMenu");
+  if (homeMenu) {
+    homeMenu.addEventListener("change", function () {
+      const choice = this.value;
+
+      if (choice === "write") {
+        switchScreen("homeScreen");
+        document.getElementById("homeFeeling").focus();
+      }
+
+      else if (choice === "calendar") {
+        switchScreen("calendarScreen");
+        renderCalendar();
+      }
+
+      else if (choice === "summary") {
+        rebuildStats();
+        updateEntry();
+        switchScreen("summaryScreen");
+        renderEmotionChart();
+      }
+
+      else if (choice === "pdf") {
+        rebuildStats();
+        updateEntry();
+        switchScreen("summaryScreen");
+        renderEmotionChart();
+      }
+
+      else if (choice === "logout") {
+        localStorage.removeItem("currentUser");
+        currentUser = null;
+        switchScreen("loginScreen");
+      }
+
+      this.value = "";
+    });
+  }
+
+  const showSuggestions = document.getElementById("showSuggestions");
+  if (showSuggestions) {
+    showSuggestions.addEventListener("click", () => {
+      if (!currentFeeling) {
+        alert("Please enter how you are feeling first!");
+        return;
+      }
+
+      switchScreen("Suggestions");
+
+      const reflectionText = document.getElementById("reflection").value;
+      const sentiment = analyzeSentiment(reflectionText);
+      const musicPreference = currentUser?.preferences?.music || "music";
+      const query = `${currentFeeling} ${sentiment} ${musicPreference}`;
+
+      getItunesMusic(query);
+      getYouTubeMusic(query);
+      getColoringSuggestions(query);
+    });
+  }
+
+  if (currentUser) {
+    document.querySelector("#homeScreen h1").textContent =
+      `Welcome to ReadYou, ${currentUser.name}!`;
+
+    switchScreen("homeScreen");
+  } else {
+    switchScreen("loginScreen");
+  }
+
+  try {
+    renderEmotionChart();
+  } catch (error) {
+    console.log("Chart error:", error);
+  }
 });
+
 
 </script>
 
