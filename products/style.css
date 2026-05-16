@@ -1,18 +1,19 @@
-/* Project Name: HW04 3RD PARTY INTERGRATION /////////////////////////////////////////////
-/// Course: CS-270-01 /////////////////////////////////////////////////////////////////////
-/// Date: Oct. 14, 2025 ////////////////////////////////////////////////////////////////////
+/* Project Name: ReadYou /////////////////////////////////////////////
+/// Course: Applied Digital Humanities /////////////////////////////////////////////////////////////////////
+/// Date Created: Oct. 14, 2025 ////////////////////////////////////////////////////////////////////
 /// Citation: w3schools.com, JavaScript from Beginner to Professional//////////////////////
 /// by Svekis, Pericival, and Putten, https://www.youtube.com/watch?v=-OcVVgDLI3U//////////
 /// and w3 school java script page (details included in refrence) /////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 /// This code below is intedned to demonstrate described css application on html code. ////
-/////////////////////////////////////////////////////////////////////////////////////////*/
+///////////////////////////////////////////////////////////////////////////////////////////
+///Last day accessed: May 15, 2026//////////////////////////////////////////////////////*/
 
 /* reference: https://www.youtube.com/watch?v=-OcVVgDLI3U */
 /* reference: https://www.youtube.com/watch?v=MYFgtnKMDp4 */
 
 /*making a color pallete for eaiser color work*/
-/*this is making it var*/
+
 /* =========================
    COLOR SYSTEM
 ========================= */
@@ -119,6 +120,7 @@ p {
     box-shadow: none !important;
     border: none !important;
     padding: 0 !important;
+    position: relative;
 }
 
 /* =========================
@@ -382,3 +384,67 @@ textarea:focus, .chat-input:focus {
   box-shadow: none;
   border: none;
 }
+
+#homeMenu,
+#journalDateSearch,
+#pdfFilter {
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid #c9b8a8;
+  margin: 10px;
+  font-size: 1rem;
+}
+
+.calendar-day,
+.journal-card {
+  background: rgba(255, 255, 255, 0.75);
+  padding: 14px;
+  margin: 12px auto;
+  border-radius: 16px;
+  max-width: 600px;
+}
+
+.top-right-menu {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 1000;
+}
+
+
+#homeMenu {
+  padding-top: 90px;
+  padding-left: 120px;
+  border-radius: 12px;
+  border: 1px solid #c9b8a8;
+  background-color: white;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+#loginScreen input,
+#loginScreen select {
+  width: 280px;
+  padding: 10px;
+  margin: 8px 0 14px 0;
+  border-radius: 10px;
+  border: 1px solid #c9b8a8;
+  font-size: 1rem;
+}
+
+#loginScreen label {
+  margin-top: 8px;
+  font-weight: bold;
+}
+
+#loginButton {
+  margin-top: 12px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+}
+
